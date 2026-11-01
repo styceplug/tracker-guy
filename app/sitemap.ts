@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
-import { site } from "@/lib/site";
+import { defaultContent } from "@/lib/content";
+
+const site = defaultContent.business;
 
 export const dynamic = "force-static";
 

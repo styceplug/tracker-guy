@@ -1,25 +1,28 @@
+"use client";
 import { Icon } from "@/lib/icons";
+import { useContent } from "@/lib/useContent";
 
 const rise = (ms: number) => ({ animationDelay: `${ms}ms` });
 
 export default function Hero() {
+  const { hero } = useContent();
   return (
     <section className="wrap grid items-center gap-6 pb-14 pt-4 lg:grid-cols-2 lg:gap-10 lg:pb-[90px] lg:pt-[60px]">
       <div className="lg:order-1">
         <h1 style={rise(100)} className="max-w-[560px] animate-rise text-balance text-[clamp(38px,6vw,76px)] font-semibold leading-[1.08] tracking-tight">
-          Always know where your vehicle is
+          {hero.title}
         </h1>
         <svg className="mb-7 mt-3 h-[26px] w-[min(479px,100%)] lg:mb-9 lg:mt-3.5" viewBox="0 0 479 26" preserveAspectRatio="none" aria-hidden>
           <path pathLength={1} strokeDasharray={1} className="animate-draw" d="M2 20C90 4 260 -4 477 18" fill="none" stroke="#54bd95" strokeWidth="4" strokeLinecap="round" />
         </svg>
         <p style={rise(300)} className="max-w-[470px] animate-rise text-base text-[#33352e]">
-          We install GPS trackers in cars, bikes, trucks and fleets. Follow your vehicle live from your phone, get instant alerts and review every trip.
+          {hero.text}
         </p>
         <div style={rise(450)} className="mt-8 flex animate-rise flex-wrap items-center gap-x-8 gap-y-5 lg:mt-10">
-          <a href="#quote" className="btn">Get a free quote</a>
+          <a href="#quote" className="btn">{hero.ctaPrimary}</a>
           <a href="#services" className="group inline-flex items-center gap-3.5 text-base font-medium">
             <Icon name="play" className="size-10 text-brand transition-transform duration-300 group-hover:scale-110" strokeWidth={1.8} />
-            See our services
+            {hero.ctaSecondary}
           </a>
         </div>
       </div>
@@ -41,9 +44,9 @@ export default function Hero() {
         </div>
         <div style={rise(600)} className="absolute left-0 top-6 animate-rise sm:top-10">
           <div className="float relative w-[190px] animate-float px-4 py-3 sm:w-[230px] sm:px-5 sm:py-4">
-            <small className="block text-xs text-mute">Vehicle status</small>
-            <b className="mt-0.5 block text-[15px] sm:text-base">Moving, 62 km/h</b>
-            <span className="absolute right-3 top-3 rounded-full bg-brand-l px-2 py-0.5 text-[11px] font-semibold text-brand-d">Live</span>
+            <small className="block text-xs text-mute">{hero.statusLabel}</small>
+            <b className="mt-0.5 block text-[15px] sm:text-base">{hero.statusValue}</b>
+            <span className="absolute right-3 top-3 rounded-full bg-brand-l px-2 py-0.5 text-[11px] font-semibold text-brand-d">{hero.statusTag}</span>
           </div>
         </div>
         <div style={rise(800)} className="absolute right-0 top-2 animate-rise sm:top-[30px]">
@@ -55,15 +58,15 @@ export default function Hero() {
         <div style={rise(1000)} className="absolute bottom-[70px] right-0 animate-rise sm:bottom-[110px]">
           <div className="float relative h-[96px] w-[150px] animate-float -rotate-12 rounded-[14px] bg-gradient-to-br from-[#2a3142] to-[#0f131c] p-3 text-white [animation-delay:-1s] sm:h-[120px] sm:w-[200px] sm:p-[18px]">
             <i className="mb-2 block h-5 w-7 rounded-[5px] bg-gradient-to-br from-[#f3d27a] to-[#c99a2e] sm:mb-3 sm:h-[22px] sm:w-8" />
-            <b className="text-sm sm:text-[15px]">GPS tracker</b>
-            <small className="block text-xs text-[#9aa3b5]">Signal strong</small>
+            <b className="text-sm sm:text-[15px]">{hero.trackerTitle}</b>
+            <small className="block text-xs text-[#9aa3b5]">{hero.trackerSub}</small>
             <div className="mt-2 flex gap-1.5">{[0, 1, 2, 3].map((i) => <s key={i} className="size-1.5 rounded-full bg-brand" />)}</div>
           </div>
         </div>
         <div style={rise(1100)} className="absolute bottom-6 left-2 animate-rise sm:bottom-[60px] sm:left-[60px]">
           <div className="float relative w-[140px] animate-float px-4 py-3 [animation-delay:-3s] sm:w-[150px] sm:px-[18px] sm:py-3.5">
-            <small className="block text-xs text-mute">Today&apos;s distance</small>
-            <b className="text-xl text-brand-d sm:text-[22px]">48.2 km</b>
+            <small className="block text-xs text-mute">{hero.distanceLabel}</small>
+            <b className="text-xl text-brand-d sm:text-[22px]">{hero.distanceValue}</b>
           </div>
         </div>
       </div>

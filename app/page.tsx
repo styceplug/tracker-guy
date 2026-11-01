@@ -10,10 +10,13 @@ import Plans from "@/components/Plans";
 import FaqQuote from "@/components/FaqQuote";
 import Footer from "@/components/Footer";
 import RevealInit from "@/components/RevealInit";
+import { ContentProvider } from "@/lib/useContent";
+import { loadContent } from "@/lib/loadContent";
 
-export default function Page() {
+export default async function Page() {
+  const content = await loadContent();
   return (
-    <>
+    <ContentProvider initial={content}>
       <div aria-hidden className="absolute inset-x-0 top-0 -z-10 h-[1000px] overflow-hidden bg-gradient-to-b from-[#e6f6f0] to-white">
         <i className="absolute -left-52 -top-60 size-[634px] rounded-full bg-[#c9efe0] opacity-55 blur-[110px]" />
         <i className="absolute -right-32 top-16 size-[634px] rounded-full bg-[#d9e8ff] opacity-55 blur-[110px]" />
@@ -34,6 +37,6 @@ export default function Page() {
         <FaqQuote />
       </main>
       <Footer />
-    </>
+    </ContentProvider>
   );
 }

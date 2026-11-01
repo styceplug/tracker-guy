@@ -1,0 +1,54 @@
+rules_version = '2';
+
+// Paste this into Firebase console > Firestore Database > Rules, then click Publish.
+// Only fawas@thetrackerguy.com.ng (the admin account in Authentication) can manage data.
+// If you ever change the admin email, change it here and in NEXT_PUBLIC_ADMIN_EMAIL.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email != null
+        && request.auth.token.email.lower() == "fawas@thetrackerguy.com.ng";
+    }
+
+    function text(v, required) {
+      return v is string && v.size() <= 200 && (!required || v.size() > 0);
+    }
+
+    // Website content: anyone can read it (the public site loads it), only the admin can change it.
+    match /content/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Installation form (/form): anyone can send a new submission with exactly these fields.
+    // Only the admin can read, convert or delete submissions.
+    match /submissions/{docId} {
+      allow create: if request.resource.data.keys().hasOnly(['name', 'address', 'email', 'vehicleMake', 'phone', 'plate', 'status', 'createdAt'])
+        && text(request.resource.data.name, true)
+        && text(request.resource.data.address, true)
+        && text(request.resource.data.email, true)
+        && text(request.resource.data.vehicleMake, true)
+        && text(request.resource.data.phone, true)
+        && text(request.resource.data.plate, false)
+        && request.resource.data.status == 'New'
+        && request.resource.data.createdAt == request.time;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Invoices, customers, invoice settings and the invoice number counter: admin only.
+    match /invoices/{docId} {
+      allow read, write: if isAdmin();
+    }
+    match /customers/{docId} {
+      allow read, write: if isAdmin();
+    }
+    match /settings/{docId} {
+      allow read, write: if isAdmin();
+    }
+    match /counters/{docId} {
+      allow read, write: if isAdmin();
+    }
+  }
+}

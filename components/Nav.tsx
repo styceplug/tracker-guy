@@ -1,9 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
-import { nav, site } from "@/lib/site";
+import { useContent } from "@/lib/useContent";
 import Logo from "./Logo";
 
 export default function Nav() {
+  const { nav: navContent, business: site } = useContent();
+  const nav = navContent.links;
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState("#top");
   const [scrolled, setScrolled] = useState(false);
@@ -22,7 +24,7 @@ export default function Nav() {
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  }, [nav]);
 
   return (
     <header className={`sticky top-0 z-50 backdrop-blur-xl transition-all duration-300 ${scrolled ? "bg-white/90 shadow-[0_8px_30px_rgba(25,26,21,.06)]" : "bg-white/60"}`}>
@@ -46,11 +48,11 @@ export default function Nav() {
               {n.label}
             </a>
           ))}
-          <a href="#quote" onClick={() => setOpen(false)} className="btn mt-5 lg:hidden">Get a quote</a>
+          <a href="#quote" onClick={() => setOpen(false)} className="btn mt-5 lg:hidden">{navContent.quote}</a>
         </nav>
         <div className="hidden items-center gap-5 text-[15px] text-mute lg:flex">
-          <a href={`tel:${site.phone.replace(/[^\d+]/g, "")}`} className="hover:text-ink max-lg:hidden">Call us</a>
-          <a href="#quote" className="btn !rounded-[10px] !px-5 !py-2.5 !text-[15px]">Get a quote</a>
+          <a href={`tel:${site.phone.replace(/[^\d+]/g, "")}`} className="hover:text-ink max-lg:hidden">{navContent.call}</a>
+          <a href="#quote" className="btn !rounded-[10px] !px-5 !py-2.5 !text-[15px]">{navContent.quote}</a>
         </div>
         <button
           aria-label="Menu"

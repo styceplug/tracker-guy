@@ -1,16 +1,18 @@
 "use client";
 import { Icon } from "@/lib/icons";
-import { commonFeatures, simNote, site, tiers } from "@/lib/site";
+import { useContent } from "@/lib/useContent";
 import { d } from "@/lib/reveal";
 import Check from "./Check";
 
 export default function Plans() {
+  const { plans, business: site } = useContent();
+  const { tiers, simNote, features: commonFeatures } = plans;
   const pick = (plan: string) => window.dispatchEvent(new CustomEvent("plan-select", { detail: plan }));
   return (
     <section id="plans" className="wrap pb-14 pt-6 lg:pb-[110px] lg:pt-10">
-      <h2 data-reveal className="h2 text-center">Two trackers. Simple prices.</h2>
+      <h2 data-reveal className="h2 text-center">{plans.title}</h2>
       <p data-reveal style={d(1)} className="mx-auto mt-4 max-w-[560px] text-center text-base text-mute">
-        Both trackers do the same tracking. The Advanced tracker adds audio monitoring.
+        {plans.text}
       </p>
 
       <div className="mx-auto mt-10 grid max-w-[980px] items-stretch gap-7 md:grid-cols-2 lg:mt-14">
@@ -18,7 +20,7 @@ export default function Plans() {
           const pro = t.id === "advanced";
           return (
             <article
-              key={t.id}
+              key={i}
               data-reveal
               style={d(i, 130)}
               className={`relative flex flex-col rounded-[20px] p-7 sm:p-9 ${pro ? "border-2 border-brand bg-white shadow-[0_30px_70px_-25px_rgba(84,189,149,.55)]" : "border border-[#e8ecf4] bg-white shadow-[0_20px_60px_rgba(25,26,21,.06)]"}`}
@@ -34,8 +36,8 @@ export default function Plans() {
               </div>
 
               <ul className="mt-7 grid gap-4">
-                {t.points.map((p) => (
-                  <li key={p} className="flex items-start gap-3.5 text-[15px] font-medium"><span className="mt-0.5"><Check small /></span>{p}</li>
+                {t.points.map((p, j) => (
+                  <li key={j} className="flex items-start gap-3.5 text-[15px] font-medium"><span className="mt-0.5"><Check small /></span>{p}</li>
                 ))}
                 {t.missing && (
                   <li className="flex items-start gap-3.5 text-[15px] text-mute">
@@ -50,7 +52,7 @@ export default function Plans() {
 
               <div className="mt-auto pt-8">
                 <a href="#quote" onClick={() => pick(t.plan)} className={`btn w-full ${pro ? "" : "btn-soft"}`}>
-                  Get the {t.name.split(" ")[0]} tracker
+                  {t.button}
                 </a>
               </div>
             </article>
@@ -64,17 +66,17 @@ export default function Plans() {
       </p>
 
       <p data-reveal className="mx-auto mt-6 max-w-[980px] text-center text-[15px] text-mute">
-        Tracking a fleet? Fleet pricing is quoted separately.{" "}
-        <a href={`https://wa.me/${site.whatsapp}?text=${encodeURIComponent("Hello, I would like a fleet tracking quote.")}`} target="_blank" rel="noopener" className="font-semibold text-brand-d underline underline-offset-4 hover:text-brand">
-          Message us for a quote
+        {plans.fleetText}{" "}
+        <a href={`https://wa.me/${site.whatsapp}?text=${encodeURIComponent(plans.fleetMessage)}`} target="_blank" rel="noopener" className="font-semibold text-brand-d underline underline-offset-4 hover:text-brand">
+          {plans.fleetLink}
         </a>
       </p>
 
       <div data-reveal className="mx-auto mt-8 max-w-[980px] rounded-[20px] bg-lav p-7 sm:p-9">
-        <h3 className="text-xl font-semibold tracking-tight">Both trackers include</h3>
+        <h3 className="text-xl font-semibold tracking-tight">{plans.featuresTitle}</h3>
         <ul className="mt-6 grid gap-x-8 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
-          {commonFeatures.map((f) => (
-            <li key={f} className="flex items-center gap-3 text-[15px] font-medium"><Check small />{f}</li>
+          {commonFeatures.map((f, i) => (
+            <li key={i} className="flex items-center gap-3 text-[15px] font-medium"><Check small />{f}</li>
           ))}
         </ul>
       </div>
