@@ -1,5 +1,7 @@
+"use client";
 import { Icon } from "@/lib/icons";
 import { d } from "@/lib/reveal";
+import { useContent } from "@/lib/useContent";
 
 const art = "relative h-[350px] overflow-hidden rounded-[20px] border border-[#eef1f8] bg-gradient-to-br from-[#f5fafa] to-[#eef0fb]";
 const chip = "absolute inset-x-[26px] flex items-center gap-3 rounded-[14px] bg-white p-3.5 shadow-[0_10px_30px_rgba(25,26,21,.08)]";
@@ -14,12 +16,13 @@ function Alert({ icon, title, time, warn, cls = "", i }: { icon: string; title: 
 }
 
 export default function Features() {
+  const { features: f } = useContent();
   return (
     <section id="features" className="wrap pb-10 pt-6 lg:pb-[60px] lg:pt-[40px]">
       <div data-reveal className="grid items-center gap-6 max-lg:grid-cols-1 lg:grid-cols-[1fr_1.1fr_auto] lg:gap-12">
-        <h2 className="h2">Features you get with every tracker</h2>
-        <p className="text-base text-mute">Simple tools that help you keep your vehicle safe and keep an eye on how it is used.</p>
-        <a href="#quote" className="btn justify-self-start">Get a quote</a>
+        <h2 className="h2">{f.title}</h2>
+        <p className="text-base text-mute">{f.text}</p>
+        <a href="#quote" className="btn justify-self-start">{f.cta}</a>
       </div>
       <div className="mt-10 grid gap-10 md:gap-[30px] lg:mt-[70px] md:grid-cols-2 lg:grid-cols-3">
         <article data-reveal>
@@ -30,20 +33,20 @@ export default function Features() {
             </div>
             <div className={`${chip} bottom-[26px]`}>
               <Icon name="car" className="size-9 rounded-[10px] bg-brand-l p-2 text-brand-d" />
-              <div><b className="block text-[15px]">Your car</b><small className="text-xs text-mute">Moving, 62 km/h</small></div>
+              <div><b className="block text-[15px]">{f.live.chipTitle}</b><small className="text-xs text-mute">{f.live.chipSub}</small></div>
             </div>
           </div>
-          <h3 className="mb-2 mt-6 text-2xl font-semibold tracking-tight">Live tracking</h3>
-          <p className="max-w-[320px] text-[15px] text-mute">See the exact location of your vehicle on the map, updated as it moves.</p>
+          <h3 className="mb-2 mt-6 text-2xl font-semibold tracking-tight">{f.live.title}</h3>
+          <p className="max-w-[320px] text-[15px] text-mute">{f.live.text}</p>
         </article>
         <article data-reveal style={d(1, 130)}>
           <div aria-hidden className={`${art} grid content-center gap-3.5 px-[26px] py-[34px]`}>
-            <Alert icon="power" title="Ignition on" time="2 min ago" i={0} />
-            <Alert icon="bell" title="Left safe zone" time="Just now" warn cls="ml-6 -mr-1.5" i={1} />
-            <Alert icon="shield" title="Back in safe zone" time="Today" cls="mr-6" i={2} />
+            {f.alerts.items.map((a, i) => (
+              <Alert key={i} icon={a.icon} title={a.title} time={a.time} warn={a.warn} cls={["", "ml-6 -mr-1.5", "mr-6"][i % 3]} i={i} />
+            ))}
           </div>
-          <h3 className="mb-2 mt-6 text-2xl font-semibold tracking-tight">Instant alerts</h3>
-          <p className="max-w-[320px] text-[15px] text-mute">Get notified when your vehicle starts, leaves an area you set or moves when it should not.</p>
+          <h3 className="mb-2 mt-6 text-2xl font-semibold tracking-tight">{f.alerts.title}</h3>
+          <p className="max-w-[320px] text-[15px] text-mute">{f.alerts.text}</p>
         </article>
         <article data-reveal style={d(2, 130)}>
           <div aria-hidden className={`${art} flex items-end gap-3.5 px-[30px] pb-[34px] pt-[110px]`}>
@@ -52,11 +55,11 @@ export default function Features() {
             ))}
             <div className={`${chip} top-[26px]`}>
               <Icon name="route" className="size-9 rounded-[10px] bg-brand-l p-2 text-brand-d" />
-              <div><b className="block text-[15px]">Trip history</b><small className="text-xs text-mute">Routes, stops, distance</small></div>
+              <div><b className="block text-[15px]">{f.trips.chipTitle}</b><small className="text-xs text-mute">{f.trips.chipSub}</small></div>
             </div>
           </div>
-          <h3 className="mb-2 mt-6 text-2xl font-semibold tracking-tight">Trip history</h3>
-          <p className="max-w-[320px] text-[15px] text-mute">Replay past trips, see where it stopped and how far it went.</p>
+          <h3 className="mb-2 mt-6 text-2xl font-semibold tracking-tight">{f.trips.title}</h3>
+          <p className="max-w-[320px] text-[15px] text-mute">{f.trips.text}</p>
         </article>
       </div>
     </section>
