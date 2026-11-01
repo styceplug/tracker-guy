@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tracker Guy | Vehicle tracker installation</title>
+<meta name="description" content="Professional vehicle tracker installation. Know where your car, bike or fleet is, get instant alerts and review trip history from your phone.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></symbol>
+    <symbol id="i-route" viewBox="0 0 24 24"><circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></symbol>
+    <symbol id="i-wrench" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m10 8 6 4-6 4z"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5L20 7"/></symbol>
+    <symbol id="i-power" viewBox="0 0 24 24"><path d="M18.4 6.6a9 9 0 1 1-12.8 0"/><path d="M12 2v10"/></symbol>
+    <symbol id="i-car" viewBox="0 0 24 24"><path d="M5 17H3v-5l2-5h14l2 5v5h-2"/><circle cx="7.5" cy="17" r="2"/><circle cx="16.5" cy="17" r="2"/><path d="M3 12h18"/></symbol>
+    <symbol id="i-bike" viewBox="0 0 24 24"><circle cx="5.5" cy="17" r="3.5"/><circle cx="18.5" cy="17" r="3.5"/><path d="M15 6h3l-3.5 11M5.5 17 9 8h4l3 9"/></symbol>
+    <symbol id="i-truck" viewBox="0 0 24 24"><path d="M1 4h13v12H1zM14 8h4l4 4v4h-8"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></symbol>
+    <symbol id="i-bus" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="15" rx="2"/><path d="M3 11h18M7 18v3M17 18v3"/><circle cx="7.5" cy="14.5" r=".6"/><circle cx="16.5" cy="14.5" r=".6"/></symbol>
+    <symbol id="i-fleet" viewBox="0 0 24 24"><rect x="2" y="3" width="8" height="8" rx="1"/><rect x="14" y="3" width="8" height="8" rx="1"/><rect x="2" y="13" width="8" height="8" rx="1"/><rect x="14" y="13" width="8" height="8" rx="1"/></symbol>
+  </defs>
+</svg>
+
+<div class="bg-glow" aria-hidden="true"><i></i><i></i><i></i></div>
+
+<header class="nav" id="top">
+  <div class="wrap nav__in">
+    <a href="#top" class="logo">Tracker<span>Guy</span></a>
+    <nav class="nav__links" id="menu" aria-label="Main">
+      <a href="#top" class="is-active">Home</a>
+      <a href="#how">How it works</a>
+      <a href="#features">Features</a>
+      <a href="#plans">Plans</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <div class="nav__cta">
+      <a class="nav__call" data-cfg="phone" data-href="tel">Call us</a>
+      <a class="btn btn--sm" href="#quote">Get a quote</a>
+    </div>
+    <button class="burger" id="burger" aria-label="Menu" aria-expanded="false" aria-controls="menu"><span></span><span></span></button>
+  </div>
+</header>
+
+<main>
+<!-- HERO -->
+<section class="hero wrap">
+  <div class="hero__copy">
+    <h1>Always know where your vehicle is</h1>
+    <svg class="swoosh" viewBox="0 0 479 26" preserveAspectRatio="none" aria-hidden="true"><path d="M2 20C90 4 260 -4 477 18" fill="none" stroke="#54bd95" stroke-width="4" stroke-linecap="round"/></svg>
+    <p>We install GPS trackers in cars, bikes, trucks and fleets. Follow your vehicle live from your phone, get instant alerts and review every trip.</p>
+    <div class="hero__btns">
+      <a class="btn" href="#quote">Get a free quote</a>
+      <a class="link-play" href="#how"><svg><use href="#i-play"/></svg>See how it works</a>
+    </div>
+  </div>
+
+  <div class="hero__art" aria-hidden="true">
+    <div class="map-card">
+      <svg viewBox="0 0 410 526" class="map-svg" preserveAspectRatio="xMidYMid slice">
+        <g stroke="#fff" stroke-opacity=".22" stroke-width="2" fill="none">
+          <path d="M-20 90H430M-20 200H430M-20 330H430M-20 440H430"/>
+          <path d="M70 -10V540M190 -10V540M310 -10V540"/>
+        </g>
+        <path d="M30 470C90 400 80 330 160 300S250 330 280 240 330 130 390 70" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-dasharray="2 14"/>
+        <path d="M30 470C90 400 80 330 160 300S250 330 280 240" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round"/>
+      </svg>
+      <div class="car-pin"><span></span><svg><use href="#i-car"/></svg></div>
+    </div>
+    <div class="float f-status"><small>Vehicle status</small><b>Moving, 62 km/h</b><span class="live">Live</span></div>
+    <div class="float f-ico f-ico--a"><svg><use href="#i-bell"/></svg></div>
+    <div class="float f-ico f-ico--b"><svg><use href="#i-shield"/></svg></div>
+    <div class="float f-device"><i></i><b>GPS tracker</b><small>Signal strong</small><div class="dots"><s></s><s></s><s></s><s></s></div></div>
+    <div class="float f-trip"><small>Today's distance</small><b>48.2 km</b></div>
+  </div>
+</section>
+
+<!-- VEHICLES -->
+<section class="wrap vehicles">
+  <h2 class="center">Trackers for every kind of vehicle</h2>
+  <ul class="vehicles__list">
+    <li><svg><use href="#i-car"/></svg>Cars</li>
+    <li><svg><use href="#i-bike"/></svg>Motorcycles</li>
+    <li><svg><use href="#i-truck"/></svg>Trucks</li>
+    <li><svg><use href="#i-bus"/></svg>Buses</li>
+    <li><svg><use href="#i-fleet"/></svg>Fleets</li>
+  </ul>
+</section>
+
+<!-- HOW WE SUPPORT -->
+<section class="band band--lav" id="how">
+  <div class="wrap support">
+    <div class="support__l">
+      <h2>How we keep your vehicle protected</h2>
+      <p class="muted">From the first call to the day it is installed, we handle the whole process. You get a working tracker and a simple app to follow your vehicle.</p>
+      <ol class="steps">
+        <li><b>1</b>Tell us your vehicle and needs</li>
+        <li><b>2</b>We install the tracker</li>
+        <li><b>3</b>Follow it live on your phone</li>
+      </ol>
+    </div>
+    <div class="support__r">
+      <article><span class="tile"><svg><use href="#i-wrench"/></svg></span><div><h3>Professional installation</h3><p>We fit the tracker and test it with you before we leave, so you know it works.</p></div></article>
+      <article><span class="tile"><svg><use href="#i-pin"/></svg></span><div><h3>Live monitoring</h3><p>Open the app any time to see where your vehicle is and where it has been.</p></div></article>
+      <article><span class="tile"><svg><use href="#i-phone"/></svg></span><div><h3>Support when you need it</h3><p>Call or message us on WhatsApp if you have a question or need a check-up.</p></div></article>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="wrap features" id="features">
+  <div class="features__head">
+    <h2>Features you get with every tracker</h2>
+    <p class="muted">Simple tools that help you keep your vehicle safe and keep an eye on how it is used.</p>
+    <a class="btn" href="#quote">Get a quote</a>
+  </div>
+  <div class="cards">
+    <article class="fcard">
+      <div class="fcard__art art-live">
+        <div class="mini-map"><i></i><svg><use href="#i-pin"/></svg></div>
+        <div class="chip"><svg><use href="#i-car"/></svg><div><b>Your car</b><small>Moving, 62 km/h</small></div></div>
+      </div>
+      <h3>Live tracking</h3>
+      <p class="muted">See the exact location of your vehicle on the map, updated as it moves.</p>
+    </article>
+    <article class="fcard">
+      <div class="fcard__art art-alerts">
+        <div class="alert a1"><span class="tile tile--sm"><svg><use href="#i-power"/></svg></span><div><b>Ignition on</b><small>2 min ago</small></div></div>
+        <div class="alert a2"><span class="tile tile--sm tile--warn"><svg><use href="#i-bell"/></svg></span><div><b>Left safe zone</b><small>Just now</small></div></div>
+        <div class="alert a3"><span class="tile tile--sm"><svg><use href="#i-shield"/></svg></span><div><b>Back in safe zone</b><small>Today</small></div></div>
+      </div>
+      <h3>Instant alerts</h3>
+      <p class="muted">Get notified when your vehicle starts, leaves an area you set or moves when it should not.</p>
+    </article>
+    <article class="fcard">
+      <div class="fcard__art art-trips">
+        <div class="bars"><i style="--h:40%"></i><i style="--h:72%"></i><i style="--h:55%"></i><i style="--h:90%"></i><i style="--h:35%"></i><i style="--h:65%"></i><i style="--h:48%"></i></div>
+        <div class="chip chip--top"><svg><use href="#i-route"/></svg><div><b>Trip history</b><small>Routes, stops, distance</small></div></div>
+      </div>
+      <h3>Trip history</h3>
+      <p class="muted">Replay past trips, see where it stopped and how far it went.</p>
+    </article>
+  </div>
+</section>
+
+<!-- BENEFITS -->
+<section class="wrap benefits">
+  <div class="benefits__l">
+    <h2>Why people choose a tracker</h2>
+    <ul class="checks">
+      <li><i><svg><use href="#i-check"/></svg></i>Help recover a vehicle if it is stolen</li>
+      <li><i><svg><use href="#i-check"/></svg></i>Alerts straight to your phone</li>
+      <li><i><svg><use href="#i-check"/></svg></i>Know where drivers and staff vehicles are</li>
+      <li><i><svg><use href="#i-check"/></svg></i>Mileage and trip reports</li>
+      <li><i><svg><use href="#i-check"/></svg></i>Peace of mind when you are away</li>
+    </ul>
+  </div>
+  <div class="benefits__r" aria-hidden="true">
+    <div class="panel">
+      <div class="phone">
+        <div class="phone__top"><b>My vehicles</b><small>2 online</small></div>
+        <div class="row"><svg><use href="#i-car"/></svg><div><b>Camry</b><small>Parked, Home</small></div><em class="on"></em></div>
+        <div class="row"><svg><use href="#i-truck"/></svg><div><b>Delivery van</b><small>Moving, 48 km/h</small></div><em class="on"></em></div>
+        <div class="row"><svg><use href="#i-bike"/></svg><div><b>Bike</b><small>Offline</small></div><em></em></div>
+      </div>
+    </div>
+    <div class="float b-user"><span class="av">TG</span><div><b>Tracker Guy</b><small>Here to help</small></div><span class="round"><svg><use href="#i-phone"/></svg></span></div>
+    <div class="float b-ok"><svg><use href="#i-shield"/></svg>Tracker installed and online</div>
+  </div>
+</section>
+
+<!-- PLANS -->
+<section class="wrap plans" id="plans">
+  <h2 class="center">Choose what fits your vehicle</h2>
+  <p class="center muted">Tell us what you drive and we will quote you. Pricing depends on the vehicle and the tracker.</p>
+  <div class="plans__grid">
+    <article class="plan">
+      <header><h3>Personal</h3><p>For your own car or bike</p><div class="price"><small>Price</small><b data-price="personal">Get a quote</b></div></header>
+      <div class="plan__body">
+        <ul class="checks checks--sm">
+          <li><i><svg><use href="#i-check"/></svg></i>1 vehicle</li>
+          <li><i><svg><use href="#i-check"/></svg></i>Live location on your phone</li>
+          <li><i><svg><use href="#i-check"/></svg></i>Trip history</li>
+          <li><i><svg><use href="#i-check"/></svg></i>Instant alerts</li>
+          <li><i><svg><use href="#i-check"/></svg></i>Support by call or WhatsApp</li>
+        </ul>
+        <a class="btn btn--block btn--soft" href="#quote" data-plan="Personal">Request quote</a>
+      </div>
+    </article>
+    <article class="plan plan--pro">
+      <span class="badge">Recommended</span>
+      <header><h3>Family &amp; business</h3><p>For several vehicles</p><div class="price"><small>Price</small><b data-price="multi">Get a quote</b></div></header>
+      <div class="plan__body">
+        <ul class="checks checks--sm">
+          <li><i><svg><use href="#i-check"/></svg></i>Multiple vehicles</li>
+          <li><i><svg><use href="#i-check"/></svg></i>All vehicles in one app</li>
+          <li><i><svg><use href="#i-check"/></svg></i>Safe zone alerts</li>
+          <li><i><svg><use href="#i-check"/></svg></i>Trip and mileage reports</li>
+          <li><i><svg><use href="#i-check"/></svg></i>Priority support</li>
+        </ul>
+        <a class="btn btn--block" href="#quote" data-plan="Family & business">Request quote</a>
+      </div>
+    </article>
+    <article class="plan">
+      <header><h3>Fleet</h3><p>For companies and transport</p><div class="price"><small>Price</small><b data-price="fleet">Get a quote</b></div></header>
+      <div class="plan__body">
+        <ul class="checks checks--sm">
+          <li><i><svg><use href="#i-check"/></svg></i>Unlimited vehicles</li>
+          <li><i><svg><use href="#i-check"/></svg></i>Driver and vehicle overview</li>
+          <li><i><svg><use href="#i-check"/></svg></i>Fleet reports</li>
+          <li><i><svg><use href="#i-check"/></svg></i>On-site installation</li>
+          <li><i><svg><use href="#i-check"/></svg></i>Dedicated contact</li>
+        </ul>
+        <a class="btn btn--block btn--soft" href="#quote" data-plan="Fleet">Request quote</a>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- FAQ + QUOTE -->
+<section class="band band--dark" id="faq">
+  <div class="wrap faq-quote">
+    <div class="faq">
+      <h2>Questions people ask</h2>
+      <p class="light">Cannot find your answer? Message us and we will help.</p>
+      <details open><summary>How long does installation take?</summary><p>It depends on the vehicle. We will tell you when you request a quote.</p></details>
+      <details><summary>Can I follow my vehicle from my phone?</summary><p>Yes. You use an app on your phone to see where the vehicle is and where it has been.</p></details>
+      <details><summary>Do you track motorcycles and trucks?</summary><p>Yes. We install trackers on cars, motorcycles, trucks, buses and fleets.</p></details>
+      <details><summary>Where do you install?</summary><p>Tell us your location when you request a quote and we will confirm.</p></details>
+    </div>
+    <form class="quote" id="quote" novalidate>
+      <div class="quote__ico"><svg><use href="#i-pin"/></svg></div>
+      <h3>Get a free quote</h3>
+      <label>Your name<input name="name" required placeholder="Enter your name" autocomplete="name"></label>
+      <label>Phone number<input name="phone" required type="tel" placeholder="Enter your phone number" autocomplete="tel"></label>
+      <label>Vehicle
+        <select name="vehicle">
+          <option>Car</option><option>Motorcycle</option><option>Truck</option><option>Bus</option><option>Fleet</option>
+        </select>
+      </label>
+      <label><span>Message <span class="opt">(optional)</span></span><textarea name="msg" rows="3" placeholder="Tell us about your vehicle"></textarea></label>
+      <button class="btn btn--block" type="submit">Send on WhatsApp</button>
+      <p class="quote__note" id="quoteNote">This opens WhatsApp with your details filled in.</p>
+    </form>
+  </div>
+</section>
+</main>
+
+<footer class="footer">
+  <div class="wrap footer__in">
+    <div class="footer__brand">
+      <a href="#top" class="logo">Tracker<span>Guy</span></a>
+      <p>Vehicle tracker installation and support.</p>
+      <a class="wa" data-cfg="whatsapp"><svg><use href="#i-arrow"/></svg>Chat on WhatsApp</a>
+    </div>
+    <div class="footer__cols">
+      <div><h4>Company</h4><a href="#how">How it works</a><a href="#features">Features</a><a href="#plans">Plans</a><a href="#faq">FAQ</a></div>
+      <div><h4>Contact</h4><a data-cfg="phone" data-href="tel"></a><a data-cfg="email" data-href="mailto"></a><span data-cfg="location"></span></div>
+    </div>
+  </div>
+  <div class="wrap footer__bar"><span>© <span id="yr"></span> Tracker Guy. All rights reserved.</span></div>
+</footer>
+
+<script src="js/config.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

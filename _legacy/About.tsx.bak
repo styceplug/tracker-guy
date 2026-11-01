@@ -1,0 +1,41 @@
+import { Icon } from "@/lib/icons";
+import { about } from "@/lib/site";
+import { d } from "@/lib/reveal";
+
+export default function About() {
+  return (
+    <section id="about" className="bg-lav py-14 lg:py-[90px]">
+      <div className="wrap grid items-center gap-16 max-lg:grid-cols-1 lg:grid-cols-2">
+        <div aria-hidden data-reveal="scale" className="relative h-[320px] overflow-hidden sm:h-[420px] rounded-[20px] bg-gradient-to-br from-[#cdeedf] to-brand">
+          <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "linear-gradient(#fff 2px,transparent 2px),linear-gradient(90deg,#fff 2px,transparent 2px)", backgroundSize: "70px 70px" }} />
+          <div className="absolute left-1/2 top-1/2 grid size-[150px] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-white text-brand-d shadow-2xl">
+            <Icon name="shield" className="size-16" strokeWidth={1.6} />
+          </div>
+          <div className="float left-6 top-6 flex animate-float items-center gap-2 px-4 py-3 font-medium"><Icon name="pin" className="size-5 text-brand" />Tracker online</div>
+          <div className="float bottom-6 right-6 flex animate-float [animation-delay:-3s] items-center gap-2 px-4 py-3 font-medium"><Icon name="bell" className="size-5 text-[#d78a0a]" />Alerts on</div>
+        </div>
+        <div data-reveal style={d(2, 100)}>
+          <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-d">About us</p>
+          <h2 className="h2">{about.title}</h2>
+          <div className="mt-6 grid gap-4 text-base text-mute">
+            {about.paragraphs.map((p) => <p key={p}>{p}</p>)}
+          </div>
+          <ul className="mt-8 flex flex-wrap gap-3">
+            {about.values.map((v) => (
+              <li key={v} className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-[15px] font-medium shadow-sm">
+                <i className="grid size-5 place-items-center rounded-full bg-brand text-white"><Icon name="check" className="size-3" strokeWidth={3} /></i>{v}
+              </li>
+            ))}
+          </ul>
+          {about.stats.length > 0 && (
+            <dl className="mt-10 grid grid-cols-3 gap-6">
+              {about.stats.map((s) => (
+                <div key={s.label}><dt className="text-[32px] font-semibold text-brand-d">{s.value}</dt><dd className="text-sm text-mute">{s.label}</dd></div>
+              ))}
+            </dl>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
