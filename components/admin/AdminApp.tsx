@@ -11,10 +11,12 @@ import Customers from "./Customers";
 import InvoiceSettingsForm from "./InvoiceSettings";
 import Dashboard from "./Dashboard";
 import Submissions from "./Submissions";
+import Summary from "./Summary";
 import { AdminStore, useAdmin, type Tab } from "./store";
 
 const tabs: { id: Tab; label: string; short: string; icon: string }[] = [
   { id: "home", label: "Dashboard", short: "Home", icon: "home" },
+  { id: "summary", label: "Summary", short: "Summary", icon: "chart" },
   { id: "submissions", label: "Form submissions", short: "Forms", icon: "inbox" },
   { id: "invoices", label: "Invoices & orders", short: "Invoices", icon: "file" },
   { id: "customers", label: "Customers", short: "Customers", icon: "users" },
@@ -132,6 +134,7 @@ function Shell({ email }: { email: string }) {
 
       <main className="mx-auto max-w-[1240px] px-4 pb-32 pt-5 sm:px-6 md:pb-16 md:pt-8 [&_.grid>*]:min-w-0">
         {route.tab === "home" && <Dashboard />}
+        {route.tab === "summary" && <Summary />}
         {route.tab === "submissions" && <Submissions />}
         {route.tab === "invoices" && <Invoices />}
         {route.tab === "customers" && <Customers />}
@@ -140,12 +143,12 @@ function Shell({ email }: { email: string }) {
       </main>
 
       {/* phone bottom tabs */}
-      <nav className="fixed inset-x-0 bottom-0 z-50 grid grid-cols-6 border-t border-[#eef1f8] bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-50 grid grid-cols-7 border-t border-[#eef1f8] bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden">
         {tabs.map((t) => {
           const on = route.tab === t.id;
           return (
-            <button key={t.id} onClick={() => nav({ tab: t.id })} className={`relative grid justify-items-center gap-1 py-2.5 text-[10.5px] font-medium ${on ? "text-brand-d" : "text-mute"}`}>
-              <span className={`grid h-7 w-11 place-items-center rounded-full transition ${on ? "bg-brand-l" : ""}`}><Icon name={t.icon} className="size-[19px]" /></span>
+            <button key={t.id} onClick={() => nav({ tab: t.id })} className={`relative grid justify-items-center gap-1 py-2.5 text-[10px] font-medium ${on ? "text-brand-d" : "text-mute"}`}>
+              <span className={`grid h-7 w-10 place-items-center rounded-full transition ${on ? "bg-brand-l" : ""}`}><Icon name={t.icon} className="size-[19px]" /></span>
               {t.short}
               {t.id === "submissions" && fresh > 0 && (
                 <span className="absolute right-[calc(50%-20px)] top-1.5 grid h-4 min-w-4 place-items-center rounded-full bg-[#f05a28] px-1 text-[10px] font-semibold leading-none text-white">{fresh}</span>

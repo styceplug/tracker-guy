@@ -3,8 +3,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "@/lib/icons";
 import { priceToNumber } from "@/lib/content";
 import {
-  deleteInvoice, emptyCustomer, findByNumber, formatDate, newInvoice, normalizeInvoice,
-  saveInvoice, setInvoiceStatus, setOrderStatus, today, totals, type Customer, type Invoice,
+  defaultUnitCost, deleteInvoice, emptyCustomer, findByNumber, formatDate, newInvoice, normalizeInvoice,
+  profitOf, saveInvoice, setInvoiceStatus, setOrderStatus, today, totals, type Customer, type Invoice,
 } from "@/lib/invoice";
 import { exportPdf, exportPng } from "@/lib/exportInvoice";
 import InvoiceDoc, { PAGE_H, PAGE_W } from "./InvoiceDoc";
@@ -118,7 +118,8 @@ export default function Invoices() {
 }
 
 function OrderView({ inv }: { inv: Invoice }) {
-  const { settings, nav, reload, toast, fail } = useAdmin();
+  const { settings, tiers, nav, reload, toast, fail } = useAdmin();
+  const pr = profitOf(inv, settings, tiers);
   const [busy, setBusy] = useState("");
   const docRef = useRef<HTMLDivElement>(null);
   const t = totals(inv);
@@ -226,6 +227,20 @@ function OrderView({ inv }: { inv: Invoice }) {
         </div>
       </div>
 
+      <div className={card}>
+        <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-lg font-semibold">Profit</h2>
+          <span className="text-[12px] text-mute">Only you see this. Not on the invoice.</span>
+        </div>
+        <div className="grid w-full gap-1.5 text-[14px] sm:max-w-[360px]">
+          <div className="flex justify-between"><span className="text-mute">Invoice total</span><span>{naira(pr.revenue)}</span></div>
+          <div className="flex justify-between"><span className="text-mute">Hardware cost</span><span>-{naira(pr.hardware)}</span></div>
+          <div className="flex justify-between"><span className="text-mute">Other job costs</span><span>-{naira(pr.other)}</span></div>
+          <div className="flex justify-between border-t border-[#eef1f8] pt-2 text-base font-semibold"><span>Profit</span><span className={pr.profit < 0 ? "text-red-600" : "text-brand-d"}>{naira(pr.profit)}</span></div>
+        </div>
+        {pr.missingCost && <p className="mt-3 rounded-[10px] bg-[#fff6e6] px-4 py-2.5 text-[13px] text-[#a56a00]">A tracker on this invoice has no hardware cost. Add it in Edit invoice or in Invoice settings.</p>}
+      </div>
+
       <div className={`${card} grid grid-cols-3 gap-2 text-[14px]`}>
         <div><p className="text-mute">Issued</p><p className="font-medium">{formatDate(inv.issueDate)}</p></div>
         <div><p className="text-mute">Due</p><p className="font-medium">{formatDate(inv.dueDate)}</p></div>
@@ -316,8 +331,9 @@ function InvoiceEditor({ initial }: { initial: Invoice }) {
     try { await deleteInvoice(inv.id); setGuard(null); await reload(); toast("Invoice deleted."); nav({ tab: "invoices" }); } catch (e) { fail(e); }
   }
 
-  const item = (i: number, k: "description" | "details" | "qty" | "unitPrice", v: string) =>
-    set("items", inv.items.map((it, j) => (j === i ? { ...it, [k]: k === "qty" || k === "unitPrice" ? Number(v) : v } : it)));
+  const item = (i: number, k: "description" | "details" | "qty" | "unitPrice" | "unitCost", v: string) =>
+    set("items", inv.items.map((it, j) => (j === i ? { ...it, [k]: k === "qty" || k === "unitPrice" || k === "unitCost" ? Number(v) : v } : it)));
+  const pr = profitOf(inv, settings, tiers);
 
   return (
     <div className="grid gap-5">
@@ -406,12 +422,15 @@ function InvoiceEditor({ initial }: { initial: Invoice }) {
                 <button
                   key={t.id}
                   className={btnSoft}
-                  onClick={() => set("items", [...inv.items, { description: t.name, details: t.blurb, qty: vehicleCount, unitPrice: priceToNumber(t.price) }])}
+                  onClick={() => {
+                    const c = defaultUnitCost(t.name, settings, tiers);
+                    set("items", [...inv.items, { description: t.name, details: t.blurb, qty: vehicleCount, unitPrice: priceToNumber(t.price), ...(c !== undefined ? { unitCost: c } : {}) }]);
+                  }}
                 >
                   + {t.name} ({t.price})
                 </button>
               ))}
-              <button className={btnGhost} onClick={() => set("items", [...inv.items, { description: "", details: "", qty: 1, unitPrice: 0 }])}>+ Custom item</button>
+              <button className={btnGhost} onClick={() => set("items", [...inv.items, { description: "", details: "", qty: 1, unitPrice: 0, unitCost: 0 }])}>+ Custom item</button>
             </div>
             {inv.items.map((it, i) => (
               <div key={i} className="grid gap-3 rounded-[12px] border border-[#eef1f8] bg-lav/60 p-3.5">
@@ -420,19 +439,42 @@ function InvoiceEditor({ initial }: { initial: Invoice }) {
                   <Label text="Qty"><input type="number" min={0} value={it.qty} onChange={(e) => item(i, "qty", e.target.value)} className={inputCls} /></Label>
                   <Label text="Unit price (₦)"><input type="number" min={0} value={it.unitPrice} onChange={(e) => item(i, "unitPrice", e.target.value)} className={inputCls} /></Label>
                 </div>
-                <div className="grid items-end gap-3 sm:grid-cols-[1fr_auto]">
+                <div className="grid items-end gap-3 sm:grid-cols-[1fr_160px_auto]">
                   <Label text="Details (optional)"><input value={it.details} onChange={(e) => item(i, "details", e.target.value)} className={inputCls} /></Label>
+                  <Label text="Your cost / unit (₦)">
+                    <input
+                      type="number"
+                      min={0}
+                      value={it.unitCost ?? ""}
+                      placeholder={defaultUnitCost(it.description, settings, tiers)?.toString() ?? "Not set"}
+                      title="What one of these costs you. Not printed on the invoice."
+                      onChange={(e) => item(i, "unitCost", e.target.value)}
+                      className={inputCls}
+                    />
+                  </Label>
                   <button className={btnGhost} onClick={() => set("items", inv.items.filter((_, j) => j !== i))}>Remove</button>
                 </div>
               </div>
             ))}
             <div className="grid gap-4 sm:grid-cols-2">
-              <Label text="Discount (₦)" hint="Leave at 0 for no discount.">
-                <input type="number" min={0} value={inv.discount} onChange={(e) => set("discount", Number(e.target.value))} className={inputCls} />
-              </Label>
-              <div className="rounded-[12px] bg-brand-l p-4 text-brand-d">
-                <p className="text-[12px] font-semibold uppercase tracking-wider">Total</p>
-                <p className="text-2xl font-semibold">{naira(totals(inv).total)}</p>
+              <div className="grid gap-4">
+                <Label text="Discount (₦)" hint="Leave at 0 for no discount.">
+                  <input type="number" min={0} value={inv.discount} onChange={(e) => set("discount", Number(e.target.value))} className={inputCls} />
+                </Label>
+                <Label text="Other job costs (₦)" hint="Installer, transport, extras. Not printed on the invoice.">
+                  <input type="number" min={0} value={inv.otherCost || 0} onChange={(e) => set("otherCost", Number(e.target.value))} className={inputCls} />
+                </Label>
+              </div>
+              <div className="grid content-start gap-3">
+                <div className="rounded-[12px] bg-brand-l p-4 text-brand-d">
+                  <p className="text-[12px] font-semibold uppercase tracking-wider">Total</p>
+                  <p className="text-2xl font-semibold">{naira(totals(inv).total)}</p>
+                </div>
+                <div className="rounded-[12px] border border-[#eef1f8] p-4">
+                  <p className="text-[12px] font-semibold uppercase tracking-wider text-mute">Your profit</p>
+                  <p className={`text-xl font-semibold ${pr.profit < 0 ? "text-red-600" : ""}`}>{naira(pr.profit)}</p>
+                  <p className="text-[12px] text-mute">After {naira(pr.hardware)} hardware{pr.other ? ` and ${naira(pr.other)} other costs` : ""}{pr.missingCost ? ". Some tracker costs are missing." : ""}</p>
+                </div>
               </div>
             </div>
           </div>

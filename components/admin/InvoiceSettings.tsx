@@ -5,7 +5,7 @@ import { useAdmin } from "./store";
 import InvoiceDoc, { PAGE_W } from "./InvoiceDoc";
 import { btnGhost, card, inputCls, Label, PageHeader, SaveBar } from "./ui";
 
-const fields: { k: Exclude<keyof InvoiceSettings, "terms">; label: string; hint?: string }[] = [
+const fields: { k: Exclude<keyof InvoiceSettings, "terms" | "hardwareCosts">; label: string; hint?: string }[] = [
   { k: "businessName", label: "Business name" },
   { k: "tagline", label: "Tagline" },
   { k: "phone", label: "Phone" },
@@ -22,7 +22,7 @@ const fields: { k: Exclude<keyof InvoiceSettings, "terms">; label: string; hint?
 const sample = { ...newInvoice(), number: "INV-2026-001", customer: { name: "Client name", phone: "", email: "", company: "", address: "" } };
 
 export default function InvoiceSettingsForm() {
-  const { settings, loaded, reload, toast, fail, setGuard } = useAdmin();
+  const { settings, tiers, loaded, reload, toast, fail, setGuard } = useAdmin();
   const [s, setS] = useState<InvoiceSettings>(settings);
   const [busy, setBusy] = useState(false);
   useEffect(() => { setS(settings); }, [settings]);
@@ -55,6 +55,32 @@ export default function InvoiceSettingsForm() {
               <input value={s[f.k]} onChange={(e) => setS({ ...s, [f.k]: e.target.value })} className={inputCls} />
             </Label>
           ))}
+        </div>
+        <div className={`${card} grid gap-4`}>
+          <div>
+            <h3 className="text-lg font-semibold">Hardware costs</h3>
+            <p className="text-[13px] text-mute">What one tracker costs you. Used to work out profit on the Summary page. Never shown on invoices.</p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {tiers.map((t) => (
+              <Label key={t.id} text={`${t.name} (sells for ${t.price})`}>
+                <input
+                  type="number"
+                  min={0}
+                  placeholder="Not set"
+                  value={s.hardwareCosts?.[t.id] ?? ""}
+                  onChange={(e) => {
+                    const next = { ...(s.hardwareCosts || {}) };
+                    if (e.target.value === "") delete next[t.id];
+                    else next[t.id] = Number(e.target.value);
+                    setS({ ...s, hardwareCosts: next });
+                  }}
+                  className={inputCls}
+                />
+              </Label>
+            ))}
+          </div>
+          <p className="text-[12px] text-mute">New invoice items pick this up automatically, and you can change the cost per invoice. Invoices without their own cost use these numbers.</p>
         </div>
         <div className={`${card} grid gap-3`}>
           <h3 className="text-lg font-semibold">Terms & conditions</h3>

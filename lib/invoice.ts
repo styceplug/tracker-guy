@@ -16,7 +16,8 @@ export type Customer = {
 };
 
 export type Vehicle = { makeModel: string; registration: string };
-export type LineItem = { description: string; details: string; qty: number; unitPrice: number };
+/** unitCost is what one unit costs you (hardware). Admin only, never printed on the invoice. */
+export type LineItem = { description: string; details: string; qty: number; unitPrice: number; unitCost?: number };
 export type InvoiceStatus = "Pending payment" | "Paid";
 export type OrderStatus = "Pending" | "Fulfilled";
 
@@ -34,6 +35,8 @@ export type Invoice = {
   installLocation: string;
   items: LineItem[];
   discount: number;
+  /** Other costs for this job (installer, transport...). Admin only, never printed. */
+  otherCost: number;
   notes: string;
 };
 
@@ -50,6 +53,8 @@ export type InvoiceSettings = {
   terms: string[];
   thankYou: string;
   prefix: string;
+  /** What one tracker costs you, by plan id (e.g. standard, advanced). Used for profit. */
+  hardwareCosts: Record<string, number>;
 };
 
 const b = defaultContent.business;
@@ -71,6 +76,7 @@ export const defaultSettings: InvoiceSettings = {
   ],
   thankYou: "Thank you for choosing The Tracker Guy.",
   prefix: "INV",
+  hardwareCosts: {},
 };
 
 export const emptyCustomer = (): Customer => ({ name: "", phone: "", email: "", company: "", address: "" });
@@ -93,6 +99,7 @@ export const newInvoice = (): Invoice => ({
   installLocation: "",
   items: [],
   discount: 0,
+  otherCost: 0,
   notes: "",
 });
 
@@ -146,7 +153,43 @@ export function normalizeInvoice(i: Invoice): Invoice {
     status: i.status === "Paid" ? "Paid" : "Pending payment",
     orderStatus: i.orderStatus === "Fulfilled" ? "Fulfilled" : "Pending",
     fulfilledDate: i.fulfilledDate || "",
+    otherCost: Number(i.otherCost) || 0,
   };
+}
+
+// ---------- Profit ----------
+type Tier = { id: string; name: string };
+
+/** Default cost for an item, from Invoice settings, matched by plan name. */
+export function defaultUnitCost(description: string, settings: Pick<InvoiceSettings, "hardwareCosts">, tiers: Tier[]): number | undefined {
+  const t = tiers.find((x) => x.name.trim().toLowerCase() === (description || "").trim().toLowerCase());
+  const c = t ? settings.hardwareCosts?.[t.id] : undefined;
+  return c === undefined || c === null ? undefined : Number(c) || 0;
+}
+
+/** Cost per unit for one item: the cost saved on the item, or the default from settings. */
+export function itemUnitCost(it: LineItem, settings: Pick<InvoiceSettings, "hardwareCosts">, tiers: Tier[]) {
+  if (it.unitCost !== undefined && it.unitCost !== null && String(it.unitCost) !== "") return Number(it.unitCost) || 0;
+  return defaultUnitCost(it.description, settings, tiers);
+}
+
+/** Revenue, costs and profit for one invoice. missingCost = a tracker item has no cost set anywhere. */
+export function profitOf(inv: Invoice, settings: Pick<InvoiceSettings, "hardwareCosts">, tiers: Tier[]) {
+  const { total } = totals(inv);
+  let hardware = 0;
+  let missingCost = false;
+  for (const it of inv.items) {
+    const qty = Number(it.qty) || 0;
+    const c = itemUnitCost(it, settings, tiers);
+    if (c === undefined) {
+      if (tiers.some((t) => t.name.trim().toLowerCase() === (it.description || "").trim().toLowerCase()) && qty > 0) missingCost = true;
+      continue;
+    }
+    hardware += qty * c;
+  }
+  const other = Number(inv.otherCost) || 0;
+  const cost = hardware + other;
+  return { revenue: total, hardware, other, cost, profit: total - cost, missingCost };
 }
 
 /** Finds an invoice by number. Accepts "INV-2026-001", "inv-2026-001" or just "2026-001". */

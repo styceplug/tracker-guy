@@ -10,7 +10,7 @@ import {
 } from "@/lib/invoice";
 import { firebaseError } from "./ui";
 
-export type Tab = "home" | "submissions" | "invoices" | "customers" | "content" | "settings";
+export type Tab = "home" | "summary" | "submissions" | "invoices" | "customers" | "content" | "settings";
 /** view: "order" | "edit" | "new" | "detail"; id: the record id */
 export type Route = { tab: Tab; view?: string; id?: string };
 
@@ -36,7 +36,7 @@ type Store = {
 const Ctx = createContext<Store | null>(null);
 export const useAdmin = () => useContext(Ctx)!;
 
-const tabs: Tab[] = ["home", "submissions", "invoices", "customers", "content", "settings"];
+const tabs: Tab[] = ["home", "summary", "submissions", "invoices", "customers", "content", "settings"];
 
 function parseHash(): Route {
   const [tab, view, id] = window.location.hash.replace(/^#\/?/, "").split("/");
