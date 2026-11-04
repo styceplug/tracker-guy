@@ -31,6 +31,13 @@ export default function InstallForm() {
     for (const x of fields) if (x.required && !v[x.k].trim()) e[x.k] = f.requiredError;
     if (v.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.email.trim())) e.email = f.emailError;
     setErrors(e);
+    // Jump to the first problem so it's not hidden above the fold (mobile especially).
+    const first = fields.find((x) => e[x.k]);
+    if (first) {
+      const el = document.getElementById(`f-${first.k}`);
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      el?.focus({ preventScroll: true });
+    }
     return Object.keys(e).length === 0;
   }
 
@@ -44,7 +51,8 @@ export default function InstallForm() {
       const clean = Object.fromEntries(Object.entries(v).map(([k, x]) => [k, x.trim().slice(0, MAX)])) as Record<Key, string>;
       await submitInstallForm(clean);
       setState("done");
-    } catch {
+    } catch (err) {
+      console.error("Install form submit failed:", err);
       setState("error");
     }
   }
@@ -82,6 +90,7 @@ export default function InstallForm() {
             {x.label} {x.required && <span className="text-red-600">*</span>}
           </span>
           <input
+            id={`f-${x.k}`}
             type={x.type || "text"}
             autoComplete={x.auto}
             value={v[x.k]}
@@ -93,8 +102,12 @@ export default function InstallForm() {
         </label>
       ))}
 
-      {/* spam trap: hidden from people, bots tend to fill it */}
-      <input tabIndex={-1} autoComplete="off" aria-hidden value={trap} onChange={(e) => setTrap(e.target.value)} className="absolute -left-[9999px] size-px opacity-0" name="company_website" />
+      {/* spam trap: hidden from people, bots tend to fill it.
+          The name must NOT look like a real field (company, website, url...) or browser autofill fills it
+          and real submissions get silently dropped. */}
+      <div aria-hidden className="absolute -left-[9999px] size-px overflow-hidden opacity-0">
+        <input tabIndex={-1} autoComplete="off" value={trap} onChange={(e) => setTrap(e.target.value)} name="tg_hp_x7" id="tg_hp_x7" />
+      </div>
 
       {state === "error" && (
         <p className="rounded-[12px] bg-red-50 px-4 py-3 text-[14px] font-medium text-red-700">

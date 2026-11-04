@@ -83,6 +83,18 @@ export function AdminStore({ children }: { children: React.ReactNode }) {
 
   useEffect(() => { reload(); }, [reload]);
 
+  // Data is fetched once, so pick up new form submissions when you come back to the tab.
+  useEffect(() => {
+    let last = Date.now();
+    const onVisible = () => {
+      if (document.visibilityState !== "visible" || Date.now() - last < 15000) return;
+      last = Date.now();
+      reload();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [reload]);
+
   // Keep the screen in the address bar so Back/Refresh work.
   useEffect(() => {
     const sync = () => setRoute(parseHash());
