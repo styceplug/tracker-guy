@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { Icon } from "@/lib/icons";
-import { deleteCustomer, emptyCustomer, formatDate, formatDateTime, newInvoice, saveCustomer, totals, type Customer } from "@/lib/invoice";
+import { deleteCustomer, emptyCustomer, emptyVehicle, formatDate, formatDateTime, newInvoice, saveCustomer, today, totals, type Customer, type CustomerVehicle } from "@/lib/invoice";
 import { useAdmin } from "./store";
 import { btn, btnDanger, btnGhost, card, Empty, inputCls, Label, ListRow, naira, OrderPill, PageHeader, PaymentPill, SearchBox } from "./ui";
 
@@ -11,10 +11,14 @@ export default function Customers() {
 
   const shown = useMemo(() => {
     const s = q.trim().toLowerCase();
-    return customers.filter((c) => !s || [c.name, c.phone, c.email, c.company].some((x) => (x || "").toLowerCase().includes(s)));
+    return customers.filter(
+      (c) =>
+        !s ||
+        [c.name, c.phone, c.email, c.company, ...(c.vehicles || []).flatMap((v) => [v.plate, v.simNumber, v.makeModel])].some((x) => (x || "").toLowerCase().includes(s)),
+    );
   }, [customers, q]);
 
-  if (route.view === "new") return <CustomerForm initial={emptyCustomer()} />;
+  if (route.view === "new") return <CustomerForm initial={{ ...emptyCustomer(), vehicles: [{ ...emptyVehicle(), installDate: today() }] }} />;
   if (route.view === "detail") {
     const c = customers.find((x) => x.id === route.id);
     if (!c) return <p className="text-mute">{loaded ? "This customer no longer exists." : "Loading..."}</p>;
@@ -34,7 +38,7 @@ export default function Customers() {
         actions={<button className={btn} onClick={() => nav({ tab: "customers", view: "new" })}><Icon name="plus" className="size-4" />New customer</button>}
       />
       <div className={card}>
-        <div className="mb-3"><SearchBox value={q} onChange={setQ} placeholder="Search name, phone, email" /></div>
+        <div className="mb-3"><SearchBox value={q} onChange={setQ} placeholder="Search name, phone, plate, SIM" /></div>
         {!loaded ? (
           <p className="py-8 text-center text-mute">Loading...</p>
         ) : shown.length === 0 ? (
@@ -47,7 +51,7 @@ export default function Customers() {
                 key={c.id}
                 onClick={() => nav({ tab: "customers", view: "detail", id: c.id })}
                 title={c.name}
-                sub={[c.phone, c.company].filter(Boolean).join(" · ") || c.email}
+                sub={[c.phone, c.company, ...(c.vehicles || []).map((v) => v.plate)].filter(Boolean).join(" · ") || c.email}
                 right={
                   <>
                     <span className="block text-[13px] text-mute">{s.count} order{s.count === 1 ? "" : "s"}</span>
@@ -126,6 +130,26 @@ function Detail({ c }: { c: Customer }) {
             {c.address && <p className="flex items-start gap-3 py-3"><Icon name="pin" className="mt-0.5 size-4 shrink-0 text-mute" />{c.address}</p>}
             {!c.phone && !c.email && !c.address && <p className="py-3 text-mute">No contact details.</p>}
           </div>
+          <h2 className="mb-1 mt-5 text-lg font-semibold">Vehicles & trackers</h2>
+          {(c.vehicles || []).length === 0 ? (
+            <p className="py-2 text-[14px] text-mute">None added. Click Edit to add their vehicle, plate, tracker SIM and install date.</p>
+          ) : (
+            <div className="divide-y divide-[#eef1f8] text-[14px]">
+              {(c.vehicles || []).map((v, i) => (
+                <div key={i} className="grid gap-1 py-3">
+                  <div className="flex items-center gap-2">
+                    <Icon name="car" className="size-4 shrink-0 text-mute" />
+                    <span className="font-semibold">{v.makeModel || "Vehicle"}</span>
+                    {v.plate && <span className="rounded-[6px] bg-lav px-2 py-0.5 text-[12px] font-semibold tracking-wide">{v.plate}</span>}
+                  </div>
+                  <div className="flex flex-wrap gap-x-4 gap-y-0.5 pl-6 text-[13px] text-mute">
+                    <span>SIM: {v.simNumber ? <a href={`tel:${v.simNumber.replace(/[^\d+]/g, "")}`} className="text-brand-d hover:underline">{v.simNumber}</a> : "-"}</span>
+                    <span>Installed: {v.installDate ? formatDate(v.installDate) : "-"}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
           {forms.length > 0 && (
             <div className="mt-4 rounded-[12px] bg-lav p-3.5 text-[13px]">
               <p className="font-semibold">From the installation form</p>
@@ -162,9 +186,12 @@ function Detail({ c }: { c: Customer }) {
 
 function CustomerForm({ initial, onDone }: { initial: Customer; onDone?: () => void }) {
   const { nav, reload, toast, fail, setGuard } = useAdmin();
-  const [c, setC] = useState(initial);
+  const [c, setC] = useState<Customer>({ ...initial, vehicles: initial.vehicles?.length ? initial.vehicles : [emptyVehicle()] });
+  const setV = (i: number, k: keyof CustomerVehicle, v: string) =>
+    setC((p) => ({ ...p, vehicles: (p.vehicles || []).map((x, j) => (j === i ? { ...x, [k]: v } : x)) }));
   const [busy, setBusy] = useState(false);
-  const dirty = JSON.stringify(c) !== JSON.stringify(initial);
+  const [start] = useState(() => JSON.stringify(c));
+  const dirty = JSON.stringify(c) !== start;
 
   useEffect(() => { setGuard(() => dirty); return () => setGuard(null); }, [dirty, setGuard]);
 
@@ -197,10 +224,32 @@ function CustomerForm({ initial, onDone }: { initial: Customer; onDone?: () => v
           <Label text="Company"><input value={c.company} onChange={(e) => setC({ ...c, company: e.target.value })} className={inputCls} /></Label>
         </div>
         <Label text="Address"><input value={c.address} onChange={(e) => setC({ ...c, address: e.target.value })} className={inputCls} /></Label>
-        <div className="flex gap-2">
+      </div>
+
+      <div className={`${card} grid gap-4`}>
+        <div>
+          <h3 className="text-lg font-semibold">Vehicles & trackers</h3>
+          <p className="text-[13px] text-mute">One row per vehicle. Add more for fleet customers.</p>
+        </div>
+        {(c.vehicles || []).map((v, i) => (
+          <div key={i} className="grid gap-3 rounded-[12px] border border-[#eef1f8] bg-lav/60 p-3.5">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Label text="Vehicle make / model"><input placeholder="e.g. Toyota Corolla" value={v.makeModel} onChange={(e) => setV(i, "makeModel", e.target.value)} className={inputCls} /></Label>
+              <Label text="Plate number"><input placeholder="e.g. LND 123 AB" value={v.plate} onChange={(e) => setV(i, "plate", e.target.value.toUpperCase())} className={inputCls} /></Label>
+              <Label text="Tracker SIM number"><input type="tel" placeholder="e.g. 0803 000 0000" value={v.simNumber} onChange={(e) => setV(i, "simNumber", e.target.value)} className={inputCls} /></Label>
+              <Label text="Date of installation"><input type="date" value={v.installDate} onChange={(e) => setV(i, "installDate", e.target.value)} className={inputCls} /></Label>
+            </div>
+            {(c.vehicles || []).length > 1 && (
+              <button className={`${btnGhost} justify-self-start`} onClick={() => setC((p) => ({ ...p, vehicles: (p.vehicles || []).filter((_, j) => j !== i) }))}>Remove vehicle</button>
+            )}
+          </div>
+        ))}
+        <button className={`${btnGhost} justify-self-start`} onClick={() => setC((p) => ({ ...p, vehicles: [...(p.vehicles || []), { ...emptyVehicle(), installDate: today() }] }))}>+ Add vehicle</button>
+      </div>
+
+      <div className="flex gap-2">
           <button className={btn} onClick={save} disabled={busy}>{busy ? "Saving..." : "Save customer"}</button>
           <button className={btnGhost} onClick={cancel}>Cancel</button>
-        </div>
       </div>
     </div>
   );

@@ -37,11 +37,15 @@ service cloud.firestore {
       allow read, update, delete: if isAdmin();
     }
 
-    // Invoices, customers, invoice settings and the invoice number counter: admin only.
+    // Invoices, customers, inventory, invoice settings and the invoice number counter: admin only.
     match /invoices/{docId} {
       allow read, write: if isAdmin();
     }
     match /customers/{docId} {
+      allow read, write: if isAdmin();
+    }
+    // Stock (trackers, SIMs...): admin only.
+    match /inventory/{docId} {
       allow read, write: if isAdmin();
     }
     match /settings/{docId} {

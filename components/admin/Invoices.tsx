@@ -4,7 +4,7 @@ import { Icon } from "@/lib/icons";
 import { priceToNumber } from "@/lib/content";
 import {
   defaultUnitCost, deleteInvoice, emptyCustomer, findByNumber, formatDate, newInvoice, normalizeInvoice,
-  profitOf, saveInvoice, setInvoiceStatus, setOrderStatus, today, totals, type Customer, type Invoice,
+  profitOf, saveInvoice, setInvoiceStatus, setOrderStatus, setOtherCost, stockFor, syncStock, today, totals, type Customer, type Invoice,
 } from "@/lib/invoice";
 import { exportPdf, exportPng } from "@/lib/exportInvoice";
 import InvoiceDoc, { PAGE_H, PAGE_W } from "./InvoiceDoc";
@@ -118,8 +118,12 @@ export default function Invoices() {
 }
 
 function OrderView({ inv }: { inv: Invoice }) {
-  const { settings, tiers, nav, reload, toast, fail } = useAdmin();
+  const { settings, tiers, inventory, nav, reload, toast, fail } = useAdmin();
   const pr = profitOf(inv, settings, tiers);
+  const [other, setOther] = useState(String(inv.otherCost || 0));
+  useEffect(() => { setOther(String(inv.otherCost || 0)); }, [inv.otherCost]);
+  const otherDirty = (Number(other) || 0) !== (Number(inv.otherCost) || 0);
+  const usesStock = inv.items.some((it) => stockFor(it.description, inventory, tiers));
   const [busy, setBusy] = useState("");
   const docRef = useRef<HTMLDivElement>(null);
   const t = totals(inv);
@@ -175,7 +179,7 @@ function OrderView({ inv }: { inv: Invoice }) {
         <div className={`${card} grid gap-3`}>
           <div className="flex items-center justify-between"><h2 className="text-lg font-semibold">Order</h2><OrderPill status={inv.orderStatus} /></div>
           <p className="text-[14px] text-mute">{done ? `Fulfilled${inv.fulfilledDate ? " on " + formatDate(inv.fulfilledDate) : ""}.` : "Not fulfilled yet."}</p>
-          <button className={done ? btnGhost : btn} disabled={!!busy} onClick={() => run("order", () => setOrderStatus(inv.id!, done ? "Pending" : "Fulfilled"), done ? "Marked as order pending." : "Marked as fulfilled.")}>
+          <button className={done ? btnGhost : btn} disabled={!!busy} onClick={() => run("order", async () => { await setOrderStatus(inv.id!, done ? "Pending" : "Fulfilled"); await syncStock(inv.id!, inventory, tiers); }, done ? (usesStock ? "Marked as order pending. Stock put back." : "Marked as order pending.") : (usesStock ? "Marked as fulfilled. Stock updated." : "Marked as fulfilled."))}>
             {busy === "order" ? "Saving..." : done ? "Mark as order pending" : "Mark as fulfilled"}
           </button>
         </div>
@@ -235,7 +239,28 @@ function OrderView({ inv }: { inv: Invoice }) {
         <div className="grid w-full gap-1.5 text-[14px] sm:max-w-[360px]">
           <div className="flex justify-between"><span className="text-mute">Invoice total</span><span>{naira(pr.revenue)}</span></div>
           <div className="flex justify-between"><span className="text-mute">Hardware cost</span><span>-{naira(pr.hardware)}</span></div>
-          <div className="flex justify-between"><span className="text-mute">Other job costs</span><span>-{naira(pr.other)}</span></div>
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-mute">Other job costs</span>
+            <span className="flex items-center gap-2">
+              <span className="text-mute">-₦</span>
+              <input
+                type="number"
+                min={0}
+                inputMode="numeric"
+                value={other}
+                onChange={(e) => setOther(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter" && otherDirty) run("other", () => setOtherCost(inv.id!, Number(other)), "Other job costs saved."); }}
+                className={`${inputCls} !w-[130px] !py-1.5 text-right`}
+                aria-label="Other job costs"
+              />
+            </span>
+          </div>
+          {otherDirty && (
+            <button className={`${btn} justify-self-end !py-1.5`} disabled={!!busy} onClick={() => run("other", () => setOtherCost(inv.id!, Number(other)), "Other job costs saved.")}>
+              {busy === "other" ? "Saving..." : "Save cost"}
+            </button>
+          )}
+          <p className="text-[12px] text-mute">Installer pay, transport, fuel, anything you spent on this job.</p>
           <div className="flex justify-between border-t border-[#eef1f8] pt-2 text-base font-semibold"><span>Profit</span><span className={pr.profit < 0 ? "text-red-600" : "text-brand-d"}>{naira(pr.profit)}</span></div>
         </div>
         {pr.missingCost && <p className="mt-3 rounded-[10px] bg-[#fff6e6] px-4 py-2.5 text-[13px] text-[#a56a00]">A tracker on this invoice has no hardware cost. Add it in Edit invoice or in Invoice settings.</p>}
@@ -257,7 +282,7 @@ function OrderView({ inv }: { inv: Invoice }) {
 }
 
 function InvoiceEditor({ initial }: { initial: Invoice }) {
-  const { customers, settings, tiers, nav, reload, toast, fail, setGuard } = useAdmin();
+  const { customers, settings, tiers, inventory, nav, reload, toast, fail, setGuard } = useAdmin();
   const [inv, setInv] = useState<Invoice>(initial);
   const [savedJson, setSavedJson] = useState(initial.id ? JSON.stringify(initial) : "");
   const [busy, setBusy] = useState<string>("");
@@ -293,6 +318,7 @@ function InvoiceEditor({ initial }: { initial: Invoice }) {
     setBusy("save");
     try {
       const saved = await saveInvoice(inv, settings.prefix);
+      if (saved.id) await syncStock(saved.id, inventory, tiers).catch(() => toast("Saved, but stock could not be updated.", "err"));
       setInv(saved);
       setSavedJson(JSON.stringify(saved));
       toast(`Saved as ${saved.number}.`);
@@ -383,7 +409,16 @@ function InvoiceEditor({ initial }: { initial: Invoice }) {
                 value={inv.customerId}
                 onChange={(e) => {
                   const c = customers.find((x) => x.id === e.target.value);
-                  setInv((p) => ({ ...p, customerId: c?.id || "", customer: c ? { ...emptyCustomer(), ...c } : emptyCustomer() }));
+                  setInv((p) => {
+                    const noVehicles = !p.vehicles.some((v) => v.makeModel || v.registration);
+                    const fromCustomer = (c?.vehicles || []).map((v) => ({ makeModel: v.makeModel, registration: v.plate }));
+                    return {
+                      ...p,
+                      customerId: c?.id || "",
+                      customer: c ? { ...emptyCustomer(), ...c } : emptyCustomer(),
+                      ...(noVehicles && fromCustomer.length ? { vehicles: fromCustomer } : {}),
+                    };
+                  });
                 }}
                 className={`${inputCls} max-w-[260px]`}
               >

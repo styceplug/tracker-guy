@@ -5,12 +5,12 @@ import { doc, getDoc, getFirestore } from "firebase/firestore";
 import { firebaseApp } from "@/lib/firebase";
 import { CONTENT_DOC, defaultContent, mergeContent, type Content } from "@/lib/content";
 import {
-  defaultSettings, listCustomers, listInvoices, listSubmissions, loadSettings,
-  type Customer, type Invoice, type InvoiceSettings, type Submission,
+  defaultSettings, listCustomers, listInventory, listInvoices, listSubmissions, loadSettings,
+  type Customer, type InventoryItem, type Invoice, type InvoiceSettings, type Submission,
 } from "@/lib/invoice";
 import { firebaseError } from "./ui";
 
-export type Tab = "home" | "summary" | "submissions" | "invoices" | "customers" | "content" | "settings";
+export type Tab = "home" | "summary" | "submissions" | "invoices" | "customers" | "inventory" | "content" | "settings";
 /** view: "order" | "edit" | "new" | "detail"; id: the record id */
 export type Route = { tab: Tab; view?: string; id?: string };
 
@@ -20,6 +20,7 @@ type Store = {
   invoices: Invoice[];
   customers: Customer[];
   submissions: Submission[];
+  inventory: InventoryItem[];
   settings: InvoiceSettings;
   tiers: Content["plans"]["tiers"];
   loaded: boolean;
@@ -36,7 +37,7 @@ type Store = {
 const Ctx = createContext<Store | null>(null);
 export const useAdmin = () => useContext(Ctx)!;
 
-const tabs: Tab[] = ["home", "summary", "submissions", "invoices", "customers", "content", "settings"];
+const tabs: Tab[] = ["home", "summary", "submissions", "invoices", "customers", "inventory", "content", "settings"];
 
 function parseHash(): Route {
   const [tab, view, id] = window.location.hash.replace(/^#\/?/, "").split("/");
@@ -54,6 +55,7 @@ export function AdminStore({ children }: { children: React.ReactNode }) {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [settings, setSettings] = useState<InvoiceSettings>(defaultSettings);
   const [tiers, setTiers] = useState(defaultContent.plans.tiers);
   const [loaded, setLoaded] = useState(false);
@@ -70,13 +72,14 @@ export function AdminStore({ children }: { children: React.ReactNode }) {
   const fail = useCallback((e: unknown) => toast(firebaseError(e), "err"), [toast]);
 
   const reload = useCallback(async () => {
-    const [inv, cus, sub, set, tr] = await Promise.allSettled([listInvoices(), listCustomers(), listSubmissions(), loadSettings(), loadTiers()]);
+    const [inv, cus, sub, set, tr, stock] = await Promise.allSettled([listInvoices(), listCustomers(), listSubmissions(), loadSettings(), loadTiers(), listInventory()]);
+    if (stock.status === "fulfilled") setInventory(stock.value);
     if (inv.status === "fulfilled") setInvoices(inv.value);
     if (cus.status === "fulfilled") setCustomers(cus.value);
     if (sub.status === "fulfilled") setSubmissions(sub.value);
     if (set.status === "fulfilled") setSettings(set.value);
     if (tr.status === "fulfilled") setTiers(tr.value);
-    const firstErr = [inv, cus, sub, set].find((r) => r.status === "rejected") as PromiseRejectedResult | undefined;
+    const firstErr = [inv, cus, sub, set, stock].find((r) => r.status === "rejected") as PromiseRejectedResult | undefined;
     if (firstErr) fail(firstErr.reason);
     setLoaded(true);
   }, [fail]);
@@ -120,7 +123,7 @@ export function AdminStore({ children }: { children: React.ReactNode }) {
   const setGuard = useCallback((fn: (() => boolean) | null) => { guard.current = fn; }, []);
 
   return (
-    <Ctx.Provider value={{ invoices, customers, submissions, settings, tiers, loaded, reload, route, nav, draft, startInvoice, toast, fail, setGuard }}>
+    <Ctx.Provider value={{ invoices, customers, submissions, inventory, settings, tiers, loaded, reload, route, nav, draft, startInvoice, toast, fail, setGuard }}>
       {children}
       <div className="pointer-events-none fixed inset-x-0 bottom-[84px] z-[60] flex flex-col items-center gap-2 px-4 md:bottom-6 md:items-end md:px-6" aria-live="polite">
         {toasts.map((t) => (

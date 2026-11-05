@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import Inventory, { isLow } from "./Inventory";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, sendPasswordResetEmail, type User } from "firebase/auth";
 import { adminEmail, firebaseApp, firebaseReady } from "@/lib/firebase";
 import { images } from "@/lib/content";
@@ -20,6 +21,7 @@ const tabs: { id: Tab; label: string; short: string; icon: string }[] = [
   { id: "submissions", label: "Form submissions", short: "Forms", icon: "inbox" },
   { id: "invoices", label: "Invoices & orders", short: "Invoices", icon: "file" },
   { id: "customers", label: "Customers", short: "Customers", icon: "users" },
+  { id: "inventory", label: "Inventory", short: "Inventory", icon: "box" },
   { id: "content", label: "Website content", short: "Website", icon: "layout" },
   { id: "settings", label: "Invoice settings", short: "Settings", icon: "gear" },
 ];
@@ -84,12 +86,22 @@ function Login() {
 }
 
 function Shell({ email }: { email: string }) {
-  const { route, nav, submissions } = useAdmin();
+  const { route, nav, submissions, inventory } = useAdmin();
+  const [more, setMore] = useState(false);
   const fresh = submissions.filter((s) => s.status === "New").length;
+  const low = inventory.filter(isLow).length;
+  const count = (id: Tab) => (id === "submissions" ? fresh : id === "inventory" ? low : 0);
   const badge = (id: Tab) =>
-    id === "submissions" && fresh > 0 ? (
-      <span className="grid h-5 min-w-5 place-items-center rounded-full bg-[#f05a28] px-1.5 text-[11px] font-semibold leading-none text-white">{fresh}</span>
+    count(id) > 0 ? (
+      <span className={`grid h-5 min-w-5 place-items-center rounded-full px-1.5 text-[11px] font-semibold leading-none text-white ${id === "inventory" ? "bg-[#e09a1f]" : "bg-[#f05a28]"}`}>{count(id)}</span>
     ) : null;
+  // Phone bottom bar: the main tabs, the rest go under More.
+  const mainIds: Tab[] = ["home", "summary", "submissions", "invoices"];
+  const mainTabs = tabs.filter((t) => mainIds.includes(t.id));
+  const moreTabs = tabs.filter((t) => !mainIds.includes(t.id));
+  const moreOn = moreTabs.some((t) => t.id === route.tab);
+  const moreCount = moreTabs.reduce((n, t) => n + count(t.id), 0);
+  const go = (id: Tab) => { setMore(false); nav({ tab: id }); };
 
   return (
     <div className="min-h-screen md:pl-[248px]">
@@ -138,24 +150,42 @@ function Shell({ email }: { email: string }) {
         {route.tab === "submissions" && <Submissions />}
         {route.tab === "invoices" && <Invoices />}
         {route.tab === "customers" && <Customers />}
+        {route.tab === "inventory" && <Inventory />}
         {route.tab === "content" && <ContentEditor />}
         {route.tab === "settings" && <InvoiceSettingsForm />}
       </main>
 
       {/* phone bottom tabs */}
-      <nav className="fixed inset-x-0 bottom-0 z-50 grid grid-cols-7 border-t border-[#eef1f8] bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden">
-        {tabs.map((t) => {
-          const on = route.tab === t.id;
+      {more && <button aria-label="Close menu" onClick={() => setMore(false)} className="fixed inset-0 z-40 bg-night/30 md:hidden" />}
+      {more && (
+        <div className="fixed inset-x-3 bottom-[calc(76px+env(safe-area-inset-bottom))] z-50 grid gap-1 rounded-[16px] bg-white p-2 shadow-[0_20px_60px_rgba(22,28,40,.25)] md:hidden">
+          {moreTabs.map((t) => (
+            <button key={t.id} onClick={() => go(t.id)} className={`flex items-center gap-3 rounded-[10px] px-3 py-3 text-left text-[15px] font-medium ${route.tab === t.id ? "bg-brand-l text-brand-d" : "text-ink hover:bg-lav"}`}>
+              <Icon name={t.icon} className="size-5" />
+              <span className="flex-1">{t.label}</span>
+              {badge(t.id)}
+            </button>
+          ))}
+        </div>
+      )}
+      <nav className="fixed inset-x-0 bottom-0 z-50 grid grid-cols-5 border-t border-[#eef1f8] bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden">
+        {mainTabs.map((t) => {
+          const on = route.tab === t.id && !more;
           return (
-            <button key={t.id} onClick={() => nav({ tab: t.id })} className={`relative grid justify-items-center gap-1 py-2.5 text-[10px] font-medium ${on ? "text-brand-d" : "text-mute"}`}>
-              <span className={`grid h-7 w-10 place-items-center rounded-full transition ${on ? "bg-brand-l" : ""}`}><Icon name={t.icon} className="size-[19px]" /></span>
+            <button key={t.id} onClick={() => go(t.id)} className={`relative grid justify-items-center gap-1 py-2.5 text-[10.5px] font-medium ${on ? "text-brand-d" : "text-mute"}`}>
+              <span className={`grid h-7 w-11 place-items-center rounded-full transition ${on ? "bg-brand-l" : ""}`}><Icon name={t.icon} className="size-[19px]" /></span>
               {t.short}
-              {t.id === "submissions" && fresh > 0 && (
-                <span className="absolute right-[calc(50%-20px)] top-1.5 grid h-4 min-w-4 place-items-center rounded-full bg-[#f05a28] px-1 text-[10px] font-semibold leading-none text-white">{fresh}</span>
+              {count(t.id) > 0 && (
+                <span className="absolute right-[calc(50%-20px)] top-1.5 grid h-4 min-w-4 place-items-center rounded-full bg-[#f05a28] px-1 text-[10px] font-semibold leading-none text-white">{count(t.id)}</span>
               )}
             </button>
           );
         })}
+        <button onClick={() => setMore((m) => !m)} className={`relative grid justify-items-center gap-1 py-2.5 text-[10.5px] font-medium ${moreOn || more ? "text-brand-d" : "text-mute"}`}>
+          <span className={`grid h-7 w-11 place-items-center rounded-full transition ${moreOn || more ? "bg-brand-l" : ""}`}><Icon name="more" className="size-[19px]" /></span>
+          More
+          {moreCount > 0 && <span className="absolute right-[calc(50%-20px)] top-1.5 grid h-4 min-w-4 place-items-center rounded-full bg-[#e09a1f] px-1 text-[10px] font-semibold leading-none text-white">{moreCount}</span>}
+        </button>
       </nav>
     </div>
   );
